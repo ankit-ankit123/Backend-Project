@@ -1,21 +1,21 @@
-const swaggerJSDoc = require("swagger-jsdoc");
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
   definition: {
-    openapi: "3.0.0",
+    openapi: '3.0.0',
     info: {
-      title: "Tour Management API",
-      version: "1.0.0",
-      description: "API documentation for Tour Management System",
+      title: 'TourConnect API',
+      version: '1.0.0',
+      description: 'TourConnect API using native MongoDB (no schema)',
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: 'http://localhost:3000/api',  // make sure this matches your actual route prefix
       },
     ],
   },
-  apis: ["./routes.js"], // Path to your documented routes
+  apis: ['./routes.js'],  // make sure this path is correct relative to swagger.js file!
 };
 
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerSpec = swaggerJsdoc(options);
 module.exports = swaggerSpec;

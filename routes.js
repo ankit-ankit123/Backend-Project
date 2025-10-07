@@ -1,93 +1,80 @@
-// routes.js
-const express = require("express");
+const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
-const mongoose = require("mongoose");
-
-// Tour schema
-const tourSchema = new mongoose.Schema({
-  tour_id: Number,
-  name: String,
-  location: String,
-  price: Number,
-});
-
-//  Prevent OverwriteModelError
-const Tour = mongoose.models.Tour || mongoose.model("Tour", tourSchema);
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Tour:
- *       type: object
- *       required:
- *         - tour_id
- *         - name
- *         - location
- *         - price
- *       properties:
- *         tour_id:
- *           type: integer
- *           description: Unique tour ID
- *         name:
- *           type: string
- *           description: Name of the tour
- *         location:
- *           type: string
- *           description: Location of the tour
- *         price:
- *           type: number
- *           description: Price of the tour
- *       example:
- *         tour_id: 1
- *         name: Shimla Trip
- *         location: Shimla
- *         price: 2500
- */
 
 /**
  * @swagger
  * tags:
  *   name: Tours
- *   description: Tour management API
+ *   description: Tour management API using native MongoDB
  */
 
 /**
  * @swagger
- * /tours:
+ * /tour:
  *   get:
  *     summary: Get all tours
  *     tags: [Tours]
  *     responses:
  *       200:
- *         description: A list of all tours
+ *         description: List of all tours from database
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Tour'
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: MongoDB Object ID
+ *                     example: "68dd62cc3e9957cb7912905f"
+ *                   tour_id:
+ *                     type: integer
+ *                     example: 12345
+ *                   name:
+ *                     type: string
+ *                     example: "Test Tour"
+ *                   description:
+ *                     type: string
+ *                     example: "Test description"
  */
-router.get("/tours", async (req, res) => {
-  const tours = await Tour.find();
-  res.json(tours);
+router.get('/tour', async (req, res) => {
+  try {
+    const collection = mongoose.connection.db.collection('tours');
+    const tours = await collection.find({}).toArray();
+    res.json(tours);
+  } catch (err) {
+    console.error('Error fetching tours:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 /**
  * @swagger
  * /tour:
  *   post:
- *     summary: Create a new tour
+ *     summary: Add a new tour
  *     tags: [Tours]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Tour'
+ *             type: object
+ *             properties:
+ *               tour_id:
+ *                 type: integer
+ *                 example: 12346
+ *               name:
+ *                 type: string
+ *                 example: "New Tour"
+ *               description:
+ *                 type: string
+ *                 example: "Description of new tour"
  *     responses:
  *       201:
- *         description: Tour created successfully
+ *         description: Tour added successfully
  *         content:
  *           application/json:
  *             schema:
@@ -95,11 +82,23 @@ router.get("/tours", async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "✅ Data inserted successfully"
+ *                 insertedId:
+ *                   type: string
+ *                   example: "618c1f1a5b3c4a3d5e123456"
  */
-router.post("/tour", async (req, res) => {
-  const tour = new Tour(req.body);
-  await tour.save();
-  res.status(201).json({ message: "Tour created successfully" });
+router.post('/tour', async (req, res) => {
+  try {
+    const collection = mongoose.connection.db.collection('tours');
+    const result = await collection.insertOne(req.body);
+    res.status(201).json({
+      message: '✅ Data inserted successfully',
+      insertedId: result.insertedId,
+    });
+  } catch (err) {
+    console.error('Error inserting tour:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 /**
@@ -114,13 +113,20 @@ router.post("/tour", async (req, res) => {
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the tour to update
+ *         description: Numeric tour_id to update
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Tour'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Tour Name"
+ *               description:
+ *                 type: string
+ *                 example: "Updated description"
  *     responses:
  *       200:
  *         description: Tour updated successfully
@@ -131,16 +137,29 @@ router.post("/tour", async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "✅ Data updated successfully"
  *                 modifiedCount:
  *                   type: integer
+ *                   example: 1
  */
-router.put("/tour/:id", async (req, res) => {
-  const { id } = req.params;
-  const result = await Tour.updateOne({ tour_id: parseInt(id) }, { $set: req.body });
-  res.status(200).json({
-    message: "Tour updated successfully",
-    modifiedCount: result.modifiedCount,
-  });
+router.put('/tour/:id', async (req, res) => {
+  try {
+    const collection = mongoose.connection.db.collection('tours');
+    const id = parseInt(req.params.id);
+
+    const result = await collection.updateOne(
+      { tour_id: id },
+      { $set: req.body }
+    );
+
+    res.status(200).json({
+      message: '✅ Data updated successfully',
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (err) {
+    console.error('Error updating tour:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 /**
@@ -155,7 +174,7 @@ router.put("/tour/:id", async (req, res) => {
  *         schema:
  *           type: integer
  *         required: true
- *         description: Numeric ID of the tour to delete
+ *         description: Numeric tour_id to delete
  *     responses:
  *       200:
  *         description: Tour deleted successfully
@@ -166,8 +185,10 @@ router.put("/tour/:id", async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "✅ Data deleted successfully"
  *                 deletedCount:
  *                   type: integer
+ *                   example: 1
  *       404:
  *         description: Tour not found
  *         content:
@@ -177,19 +198,27 @@ router.put("/tour/:id", async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "❌ Tour not found"
  */
-router.delete("/tour/:id", async (req, res) => {
-  const { id } = req.params;
-  const result = await Tour.deleteOne({ tour_id: parseInt(id) });
+router.delete('/tour/:id', async (req, res) => {
+  try {
+    const collection = mongoose.connection.db.collection('tours');
+    const id = parseInt(req.params.id);
 
-  if (result.deletedCount === 0) {
-    return res.status(404).json({ message: " Tour not found" });
+    const result = await collection.deleteOne({ tour_id: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: '❌ Tour not found' });
+    }
+
+    res.status(200).json({
+      message: '✅ Data deleted successfully',
+      deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    console.error('Error deleting tour:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  res.status(200).json({
-    message: " Tour deleted successfully",
-    deletedCount: result.deletedCount,
-  });
 });
 
 module.exports = router;
