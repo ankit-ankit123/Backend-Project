@@ -1,4 +1,4 @@
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://backend-h32q.onrender.com/api'
 
 export async function getTours() {
   const r = await fetch(`${API_BASE}/tour`)

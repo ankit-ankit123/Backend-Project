@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://backend-h32q.onrender.com/api'
 
 export default function App() {
   const [tours, setTours] = useState([])
