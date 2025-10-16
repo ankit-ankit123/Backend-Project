@@ -7,7 +7,9 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 
 const app = express();
+const cors = require('cors');
 app.use(express.json());
+app.use(cors());
 // Swagger config
 const swaggerOptions = {
   definition: {
@@ -19,7 +21,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api',
+        url: process.env.SERVER_URL || "https://backend-h32q.onrender.com/api-docs"
       },
     ],
   },
@@ -29,6 +31,23 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api", router);
+
+
+// ✅ Home Route
+app.get("/", (req, res) => {
+  res.json({
+    status: "success",
+    message: "Backend API is running successfully 🚀",
+    api_routes: {
+      get_all: "/api/tour",
+      create: "/api/tour",
+      update: "/api/tour/:id",
+      delete: "/api/tour/:id",
+      docs: "/api-docs"
+    }
+  });
+});
+
 
 // Only start server in normal mode (not during tests)
 if (process.env.NODE_ENV !== "test") {
