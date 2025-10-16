@@ -1,4 +1,5 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require("swagger-ui-express");
 
 const options = {
   definition: {
@@ -6,7 +7,7 @@ const options = {
     info: {
       title: 'TourConnect API',
       version: '1.0.0',
-      description: 'TourConnect API using native MongoDB (no schema)',
+      description: 'TourConnect API using native MongoDB',
     },
     servers: [
       {
@@ -18,4 +19,4 @@ const options = {
 };
 
 const swaggerSpec = swaggerJsdoc(options);
-module.exports = swaggerSpec;
+module.exports = {swaggerSpec,swaggerUi};

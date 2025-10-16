@@ -1,14 +1,13 @@
-const express = require('express');
-const connectDB = require('./db');
-const routes = require('./routes');
+const express = require("express");
+const connectDB = require("./db");
+const router = require("./routes"); // ✅ Corrected: was './router'
+const mongoose = require("mongoose");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
-require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-
 // Swagger config
 const swaggerOptions = {
   definition: {
@@ -29,15 +28,18 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api", router);
 
-// Use routes with prefix /api
-app.use('/api', routes);
+// Only start server in normal mode (not during tests)
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 3000;
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+       console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
+    });
   });
-});
+}
+
+module.exports = app; // ✅ Needed for testing

@@ -87,17 +87,24 @@ router.get('/tour', async (req, res) => {
  *                   type: string
  *                   example: "618c1f1a5b3c4a3d5e123456"
  */
-router.post('/tour', async (req, res) => {
+router.post("/tour", async (req, res) => {
   try {
-    const collection = mongoose.connection.db.collection('tours');
+    const collection = mongoose.connection.db.collection("tours");
+
+    // ✅ Require tour_id
+    if (!req.body.tour_id) {
+      return res.status(400).json({ error: "tour_id is required for insert" });
+    }
+
     const result = await collection.insertOne(req.body);
+
     res.status(201).json({
-      message: '✅ Data inserted successfully',
+      message: "✅ Data inserted successfully",
       insertedId: result.insertedId,
     });
   } catch (err) {
-    console.error('Error inserting tour:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error inserting data:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

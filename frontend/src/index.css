@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html, body, #root { height: 100%; }
+
+/* small helper classes */
+@layer utilities {
+	.card-bg { @apply bg-white/90; }
+
+	/* simple button utilities used across the app */
+	.btn { @apply px-4 py-2 rounded shadow font-medium; }
+	.btn-primary { @apply bg-indigo-600 text-white hover:bg-indigo-700; }
+	.btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+}
+
+/* keep the global bg using Tailwind utilities on root element */
